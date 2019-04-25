@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>MapR Object Pools Demo</title>
+    <link rel="stylesheet" type="text/css" href="css/normalize.css">
+    <link rel="stylesheet" type="text/css" href="css/skeleton.css">
+    <link rel="stylesheet" type="text/css" href="css/style.css">
+  </head>
+
+  <body>
+    <div class="container">
+      <div id="banner">
+          <img style="vertical-align:middle" src="https://mapr.com/assets/images/logo_mapr_red.svg" height="80px">
+          <span style=""><b>Automated Storage Tiering using Object Pools</b></span>
+      </div>
+      <div id="canvas"></div>
+      <div>
+        <table id="table" class="u-full-width">
+          <thead>
+          <tr>
+            <th>Volume Name</th>
+            <th>Tier Name</th>
+            <th>Job Type</th>
+            <th>State</th>
+            <th>Start</th>
+            <th>End</th>
+            <th>Tier Local</th>
+            <th>Tier Purged</th>
+            <th>Tier Total</th>
+            <th>Bucket</th>
+          </tr>
+          </thead>
+          <tbody>
+
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <script type="text/javascript" src="http://d3js.org/d3.v3.min.js"></script>
+    <script type="text/javascript" src="js/gauge.js"></script>
+    <script type="text/javascript" src="js/mapr.js"></script>
+    <script type="text/javascript">
+
+      d3.json('/rest/volumes', function (data) {
+          console.log(data);
+          var html = "";
+          data.forEach(function (record) {
+             html += '<tr>' +
+                 '<td>' + record.volumeName + '</td>' +
+                 '<td>' + record.tierName + '</td>' +
+                 '<td>' + record.jobType + '</td>' +
+                 '<td>' + record.state + '</td>' +
+                 '<td>' + record.start + '</td>' +
+                 '<td>' + record.end + '</td>' +
+                 '<td>' + record.tierLocal + '</td>' +
+                 '<td>' + record.tierPurged + '</td>' +
+                 '<td>' + record.tierTotal + '</td>' +
+                 '<td>' + record.bucket + '</td>' +
+                 '</tr>';
+         });
+          d3.select('#table>tbody').html(html);
+      });
+
+      var tableInterval = setInterval(function () {
+          d3.json('/rest/volumes', function (data) {
+              console.log(data);
+              var html = "";
+              data.forEach(function (record) {
+                  html += '<tr>' +
+                      '<td>' + record.volumeName + '</td>' +
+                      '<td>' + record.tierName + '</td>' +
+                      '<td>' + record.jobType + '</td>' +
+                      '<td>' + record.state + '</td>' +
+                      '<td>' + record.start + '</td>' +
+                      '<td>' + record.end + '</td>' +
+                      '<td>' + record.tierLocal + '</td>' +
+                      '<td>' + record.tierPurged + '</td>' +
+                      '<td>' + record.tierTotal + '</td>' +
+                      '<td>' + record.bucket + '</td>' +
+                      '</tr>';
+              });
+              d3.select('#table>tbody').html(html);
+          });
+      }, 5000);
+
+
+      d3.json('/rest/tree/', function(data) {
+          var tree = mapr.tree(data);
+          tree.render("#canvas");
+
+          var interval = setInterval(function(){
+            d3.json('/rest/tree/update', function(updated) {
+              tree.update(updated);
+            });
+          }, 2000);
+      });
+
+    </script>
+  </body>
+</html>
